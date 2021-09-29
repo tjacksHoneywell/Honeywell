@@ -1,0 +1,103 @@
+<html>
+     <head>
+          <title>Basic Barcode Reader</title>
+          <script type="text/javascript" src="BarcodeReader.js"></script>
+          <script type="text/javascript">
+          var defaultScanner;
+
+          function openButtonClicked()
+          {
+               if (!defaultReader)
+               {
+                    defaultReader = new BarcodeReader(null,
+                         onBarcodeReaderComplete);
+               }
+          }
+          function closeButtonClicked()
+          {
+               if (defaultReader)
+               {
+                    defaultReader.close(onCloseComplete);
+               }
+          }
+
+          // After BarcodeReader object is created we can configure our
+          // symbologies and add our event listener.
+          function onBarcodeReaderComplete ( result )
+          {
+               if (result.status === 0)
+               {
+                    // BarcodeReader object was successfully created.
+                    // Configure the symbologies needed. Buffer the settings
+                    // and commit them at once.
+                    defaultReader.setBuffered("Symbology", "Code39",
+                         "Enable", "true");
+                    defaultReader.setBuffered("Symbology", "Code128",
+                         "EnableCode128", "true");
+                    defaultReader.commitBuffer(onCommitComplete);
+
+                    // Add an event handler for the barcodedataready event
+                    defaultReader.addEventListener("barcodedataready",
+                         onBarcodeDataReady, false);
+               }
+               else
+               {
+                    defaultReader = null;
+                    alert('Failed to create BarcodeReader, status: ' +
+                         result.status + ", message: " + result.message);
+               }
+          }
+
+
+          // Verify the symbology configuration.
+          function onCommitComplete ( resultArray )
+          {
+               if (resultArray.length > 0)
+               {
+                    for (var i = 0; i < resultArray.length; i++)
+                    {
+                         var result = resultArray[i];
+                         if (result.status !== 0)
+                         {
+                              alert('Failed to set setting, Family: ' +
+                                   result.family + ' Key: ' + result.key +
+                                   ' Option: ' + result.option + ', status: ' +
+                                   result.status + ', message: ' + result.message);
+                         }
+                    } //endfor
+               }
+          }
+
+          function onCloseComplete (result)
+          {
+               if (result.status === 0)
+               {
+                    defaultReader = null;
+               }
+               else
+               {
+                    alert('Failed to close BarcodeReader, status: ' +
+                         result.status + ", message: " + result.message);
+               }
+          }
+
+          // Handle barcode data when available.
+          function onBarcodeDataReady (data, type, time)
+          {
+               document.getElementById("BarcodeData").value = data;
+               document.getElementById("SymbType").value = type;
+               document.getElementById("ReadTime").value = time;
+          }
+          </script>
+     </head>
+     <body>
+          <input type="button" value="Open Reader" onclick="openButtonClicked()">
+          <input type="button" value="Close Reader" onclick="closeButtonClicked()"><br>
+          <label for="BarcodeData">Data:</label>
+          <input type="text" id="BarcodeData" size=12/><br>
+          <label for="SymbType">Symbology:</label>
+          <input type="text" id="SymbType" size=12/><br>
+          <label for="ReadTime">Time:</label>
+          <input type="text" id="ReadTime" size=12/><br>
+     </body>
+</html>
